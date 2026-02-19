@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>🐸 Catch the Frogs! 🌴</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html, body {
+  width: 100%; height: 100%;
+  overflow: hidden;
+  touch-action: manipulation;
+  -webkit-user-select: none; user-select: none;
+  font-family: 'Comic Sans MS', 'Chalkboard SE', cursive;
+}
+body {
+  background: linear-gradient(180deg, #87CEEB 0%, #4DC9F6 30%, #2EA8D5 50%, #1B8BBE 60%, #F5E6CA 61%, #F5D6A0 70%, #2EA8D5 71%, #1565C0 100%);
+  position: relative;
+}
+#scene {
+  width: 100%; height: 100%;
+  position: relative;
+  overflow: hidden;
+}
+/* Decorations */
+.palm { position: absolute; font-size: 60px; z-index: 1; filter: drop-shadow(2px 2px 2px rgba(0,0,0,0.2)); }
+.palm1 { top: 5%; left: 2%; font-size: 70px; transform: scaleX(-1); }
+.palm2 { top: 3%; right: 2%; font-size: 80px; }
+.palm3 { top: 8%; left: 30%; font-size: 50px; }
+.cloud { position: absolute; font-size: 50px; z-index: 0; opacity: 0.8; animation: drift 20s linear infinite; }
+.cloud1 { top: 2%; left: 10%; animation-duration: 25s; }
+.cloud2 { top: 8%; left: 60%; animation-duration: 30s; font-size: 40px; }
+.sun { position: absolute; top: 3%; right: 15%; font-size: 70px; z-index: 0; animation: pulse 3s ease-in-out infinite; }
+@keyframes drift { 0% { transform: translateX(0); } 50% { transform: translateX(30px); } 100% { transform: translateX(0); } }
+@keyframes pulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.1); } }
+
+/* Score */
+#score-bar {
+  position: absolute; top: 10px; left: 50%; transform: translateX(-50%);
+  background: rgba(255,255,255,0.85); border-radius: 30px;
+  padding: 8px 30px; font-size: 48px; font-weight: bold;
+  color: #2E7D32; z-index: 100;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+  text-align: center;
+  min-width: 160px;
+}
+#score-bar span { color: #FF6F00; }
+
+/* Frog */
+.frog {
+  position: absolute; z-index: 10; cursor: pointer;
+  font-size: 90px; line-height: 1;
+  transition: transform 0.1s;
+  animation: appear 0.3s ease-out;
+  filter: drop-shadow(3px 5px 4px rgba(0,0,0,0.3));
+}
+.frog:active { transform: scale(0.85); }
+@keyframes appear {
+  0% { transform: scale(0) rotate(-20deg); opacity: 0; }
+  70% { transform: scale(1.2) rotate(5deg); }
+  100% { transform: scale(1) rotate(0); opacity: 1; }
+}
+@keyframes hop-away {
+  0% { transform: scale(1); opacity: 1; }
+  40% { transform: translateY(-60px) scale(1.1); }
+  100% { transform: translateY(-120px) scale(0.3); opacity: 0; }
+}
+
+/* Catch burst */
+.catch-burst {
+  position: absolute; z-index: 50; pointer-events: none;
+  font-size: 60px; animation: burst 0.8s ease-out forwards;
+}
+@keyframes burst {
+  0% { transform: scale(0.5); opacity: 1; }
+  100% { transform: scale(2.5); opacity: 0; }
+}
+
+/* Confetti */
+.confetti {
+  position: absolute; z-index: 50; pointer-events: none;
+  font-size: 30px;
+  animation: confetti-fall 1.2s ease-out forwards;
+}
+@keyframes confetti-fall {
+  0% { transform: translateY(0) rotate(0deg) scale(1); opacity: 1; }
+  100% { transform: translateY(200px) rotate(720deg) scale(0.3); opacity: 0; }
+}
+
+/* Score pop */
+.score-pop {
+  position: absolute; z-index: 60; pointer-events: none;
+  font-size: 64px; font-weight: bold; color: #FFD600;
+  text-shadow: 2px 2px 4px rgba(0,0,0,0.4);
+  animation: pop-up 1s ease-out forwards;
+}
+@keyframes pop-up {
+  0% { transform: translateY(0) scale(0.5); opacity: 1; }
+  100% { transform: translateY(-100px) scale(1.5); opacity: 0; }
+}
+
+/* Splash screen */
+#splash {
+  position: absolute; inset: 0; z-index: 200;
+  background: linear-gradient(180deg, #4DC9F6, #1B8BBE);
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 20px;
+}
+#splash h1 { font-size: 48px; color: #fff; text-shadow: 3px 3px 6px rgba(0,0,0,0.3); text-align: center; }
+#splash .big-frog { font-size: 120px; animation: pulse 2s ease-in-out infinite; }
+#splash button {
+  font-size: 40px; padding: 20px 50px; border: none; border-radius: 30px;
+  background: #FFD600; color: #2E7D32; font-weight: bold; cursor: pointer;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+  font-family: inherit;
+}
+#splash button:active { transform: scale(0.95); }
+</style>
+</head>
+<body>
+
+<div id="splash">
+  <div class="big-frog">🐸</div>
+  <h1>Catch the Frogs!<br>🌴 Seychelles 🌴</h1>
+  <button onclick="startGame()">▶️ PLAY!</button>
+</div>
+
+<div id="scene">
+  <div class="sun">☀️</div>
+  <div class="cloud cloud1">☁️</div>
+  <div class="cloud cloud2">☁️</div>
+  <div class="palm palm1">🌴</div>
+  <div class="palm palm2">🌴</div>
+  <div class="palm palm3">🌴</div>
+  <div id="score-bar">🐸 <span id="score">0</span></div>
+</div>
+
+<script>
+let score = 0;
+let audioCtx;
+let gameActive = false;
+let spawnTimer;
+
+function initAudio() {
+  audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+}
+
+function playSound(type) {
+  if (!audioCtx) return;
+  const now = audioCtx.currentTime;
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.connect(gain);
+  gain.connect(audioCtx.destination);
+
+  if (type === 'catch') {
+    // Happy chirp
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(600, now);
+    osc.frequency.linearRampToValueAtTime(1200, now + 0.1);
+    osc.frequency.linearRampToValueAtTime(800, now + 0.2);
+    gain.gain.setValueAtTime(0.3, now);
+    gain.gain.linearRampToValueAtTime(0, now + 0.3);
+    osc.start(now);
+    osc.stop(now + 0.3);
+
+    // Second chirp
+    const osc2 = audioCtx.createOscillator();
+    const gain2 = audioCtx.createGain();
+    osc2.connect(gain2); gain2.connect(audioCtx.destination);
+    osc2.type = 'sine';
+    osc2.frequency.setValueAtTime(800, now + 0.15);
+    osc2.frequency.linearRampToValueAtTime(1400, now + 0.3);
+    gain2.gain.setValueAtTime(0.25, now + 0.15);
+    gain2.gain.linearRampToValueAtTime(0, now + 0.45);
+    osc2.start(now + 0.15);
+    osc2.stop(now + 0.45);
+  } else if (type === 'ribbit') {
+    osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(150, now);
+    osc.frequency.linearRampToValueAtTime(80, now + 0.15);
+    gain.gain.setValueAtTime(0.15, now);
+    gain.gain.linearRampToValueAtTime(0, now + 0.2);
+    osc.start(now);
+    osc.stop(now + 0.2);
+  }
+}
+
+function spawnFrog() {
+  if (!gameActive) return;
+  const scene = document.getElementById('scene');
+  const frog = document.createElement('div');
+  frog.className = 'frog';
+  
+  const frogs = ['🐸'];
+  frog.textContent = frogs[0];
+  
+  // Random position (keep away from edges and score bar)
+  const maxX = window.innerWidth - 100;
+  const maxY = window.innerHeight - 150;
+  const x = 20 + Math.random() * (maxX - 20);
+  const y = 100 + Math.random() * (maxY - 100);
+  frog.style.left = x + 'px';
+  frog.style.top = y + 'px';
+
+  // Slight random rotation for variety
+  frog.style.transform = `rotate(${Math.random() * 20 - 10}deg)`;
+
+  let caught = false;
+
+  function catchFrog(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    if (caught) return;
+    caught = true;
+
+    playSound('catch');
+    score++;
+    document.getElementById('score').textContent = score;
+
+    // Position for effects
+    const rect = frog.getBoundingClientRect();
+    const cx = rect.left + rect.width / 2;
+    const cy = rect.top + rect.height / 2;
+
+    // Burst emoji
+    const burst = document.createElement('div');
+    burst.className = 'catch-burst';
+    burst.textContent = '⭐';
+    burst.style.left = (cx - 30) + 'px';
+    burst.style.top = (cy - 30) + 'px';
+    scene.appendChild(burst);
+    setTimeout(() => burst.remove(), 800);
+
+    // Score pop
+    const pop = document.createElement('div');
+    pop.className = 'score-pop';
+    pop.textContent = '+1';
+    pop.style.left = (cx - 20) + 'px';
+    pop.style.top = (cy - 20) + 'px';
+    scene.appendChild(pop);
+    setTimeout(() => pop.remove(), 1000);
+
+    // Confetti
+    const confettiEmojis = ['⭐', '🌟', '✨', '💛', '💚', '🎉', '🦋'];
+    for (let i = 0; i < 8; i++) {
+      const c = document.createElement('div');
+      c.className = 'confetti';
+      c.textContent = confettiEmojis[Math.floor(Math.random() * confettiEmojis.length)];
+      c.style.left = (cx + (Math.random() - 0.5) * 120) + 'px';
+      c.style.top = (cy + (Math.random() - 0.5) * 40) + 'px';
+      c.style.animationDelay = (Math.random() * 0.2) + 's';
+      scene.appendChild(c);
+      setTimeout(() => c.remove(), 1400);
+    }
+
+    // Milestone celebration
+    if (score % 5 === 0) {
+      for (let i = 0; i < 15; i++) {
+        const c = document.createElement('div');
+        c.className = 'confetti';
+        c.textContent = ['🎉','🥳','🌈','⭐','🎊'][Math.floor(Math.random()*5)];
+        c.style.left = (Math.random() * window.innerWidth) + 'px';
+        c.style.top = (Math.random() * 100) + 'px';
+        c.style.fontSize = '50px';
+        c.style.animationDelay = (Math.random() * 0.5) + 's';
+        scene.appendChild(c);
+        setTimeout(() => c.remove(), 1700);
+      }
+    }
+
+    frog.remove();
+  }
+
+  frog.addEventListener('touchstart', catchFrog, { passive: false });
+  frog.addEventListener('mousedown', catchFrog);
+
+  scene.appendChild(frog);
+  playSound('ribbit');
+
+  // Hop away after 3-5 seconds if not caught
+  const lifespan = 3000 + Math.random() * 2000;
+  setTimeout(() => {
+    if (!caught && frog.parentNode) {
+      frog.style.animation = 'hop-away 0.6s ease-in forwards';
+      setTimeout(() => frog.remove(), 600);
+    }
+  }, lifespan);
+
+  // Schedule next frog
+  const delay = 800 + Math.random() * 1500;
+  spawnTimer = setTimeout(spawnFrog, delay);
+}
+
+function startGame() {
+  document.getElementById('splash').style.display = 'none';
+  initAudio();
+  gameActive = true;
+  score = 0;
+  document.getElementById('score').textContent = '0';
+  spawnFrog();
+  // Spawn multiple frogs
+  setTimeout(spawnFrog, 500);
+}
+
+// Prevent zoom on double-tap
+document.addEventListener('touchstart', e => {
+  if (e.touches.length > 1) e.preventDefault();
+}, { passive: false });
+
+let lastTouch = 0;
+document.addEventListener('touchend', e => {
+  const now = Date.now();
+  if (now - lastTouch <= 300) e.preventDefault();
+  lastTouch = now;
+}, false);
+</script>
+</body>
+</html>
