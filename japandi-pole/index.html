@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Bobo House — עמוד מרכזי בסגנון ג׳פנדי</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:#1a1a1a;color:#e8e0d8;min-height:100vh;overflow-x:hidden}
+  .header{padding:16px 20px;text-align:center;background:#0d0d0d}
+  .header h1{font-size:18px;font-weight:300;letter-spacing:2px;color:#c4b5a0}
+  .header p{font-size:12px;color:#888;margin-top:4px}
+  .viewer{position:relative;width:100%;max-width:900px;margin:0 auto;overflow:hidden;touch-action:pan-y}
+  .viewer img{width:100%;display:block}
+  .viewer canvas{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none}
+  .controls{max-width:900px;margin:0 auto;padding:12px 12px 24px}
+  .tabs{display:flex;gap:6px;overflow-x:auto;padding:4px 0 12px;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+  .tabs::-webkit-scrollbar{display:none}
+  .tab{flex:0 0 auto;padding:10px 16px;border-radius:24px;border:1.5px solid #3a3530;background:#1e1c1a;cursor:pointer;transition:all .25s;white-space:nowrap;font-size:13px;color:#b0a898;text-align:center;min-width:80px}
+  .tab.active{background:#3a3530;border-color:#8b7d6b;color:#f0e8dc}
+  .tab:hover{border-color:#6b5f50}
+  .tab .en{font-size:11px;display:block;color:#777;margin-top:2px;direction:ltr}
+  .tab.active .en{color:#b0a898}
+  .info{padding:16px 4px;min-height:100px}
+  .info h2{font-size:20px;font-weight:400;color:#d4c4aa;margin-bottom:4px}
+  .info .en-name{font-size:14px;color:#7a7060;font-weight:300;margin-bottom:10px;direction:ltr;text-align:right}
+  .info p{font-size:14px;line-height:1.7;color:#a09888}
+  .badge{display:inline-block;padding:3px 10px;border-radius:12px;font-size:11px;background:#2a2520;color:#b8a888;margin-top:10px}
+  .original-label{position:absolute;top:12px;right:12px;background:rgba(0,0,0,.6);color:#c4b5a0;padding:6px 14px;border-radius:20px;font-size:12px;pointer-events:none;backdrop-filter:blur(4px);z-index:2;opacity:0;transition:opacity .3s}
+  .original-label.show{opacity:1}
+  .legend{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+  .legend-item{display:flex;align-items:center;gap:4px;font-size:11px;color:#888}
+  .legend-dot{width:10px;height:10px;border-radius:50%}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>בית בובו — עמוד מרכזי</h1>
+  <p>5 קונספטים בסגנון ג׳פנדי &nbsp;|&nbsp; Japandi Center Pole Concepts</p>
+</div>
+
+<div class="viewer" id="viewer">
+  <img id="base" src="base.jpg" alt="Living room render" crossorigin="anonymous">
+  <canvas id="overlay"></canvas>
+  <div class="original-label" id="origLabel">מצב קיים &nbsp; Current</div>
+</div>
+
+<div class="controls">
+  <div class="tabs" id="tabs"></div>
+  <div class="info" id="info"></div>
+</div>
+
+<script>
+const concepts = [
+  {
+    id:'original', he:'מצב קיים', en:'Current', color:null,
+    heDesc:'העמוד כפי שהוא — בטון חשוף.',
+    enDesc:'The pole as-is — exposed concrete.',
+    draw: null
+  },
+  {
+    id:'daiwa', he:'עמוד דייווה', en:'Daiwa Column', color:'#b08d6a',
+    heDesc:'עטיפת עץ אלון/ארז טבעי עם חריצים אנכיים עדינים. נראה כחלק מהמבנה המקורי.',
+    enDesc:'Natural oak/cedar wood wrap with subtle vertical fluting.',
+    draw: drawDaiwa
+  },
+  {
+    id:'tokonoma', he:'עמוד טוקונומה', en:'Tokonoma Pillar', color:'#a08060',
+    heDesc:'עמוד עץ עם מדף צף בגובה העיניים לאגרטל או פסל. מינימליזם של גלריה.',
+    enDesc:'Wood pole with a floating shelf at eye level for a vase/sculpture.',
+    draw: drawTokonoma
+  },
+  {
+    id:'wabisabi', he:'ליבת ואבי-סאבי', en:'Wabi-Sabi Core', color:'#8a8078',
+    heDesc:'חלק תחתון: אבן טבעית/מיקרוצמנט באפור חם. חלק עליון: עץ טבעי. פס פליז דק בחיבור.',
+    enDesc:'Bottom: warm grey stone/microcement. Top: natural wood. Thin brass strip at junction.',
+    draw: drawWabiSabi
+  },
+  {
+    id:'andon', he:'עמוד אנדון', en:'Andon Column', color:'#d4a54a',
+    heDesc:'עטיפת עץ עם חריצים אנכיים דקים שמסתירים תאורת LED חמה. פנס ענק בלילה, עמוד מינימלי ביום.',
+    enDesc:'Wood-wrapped with thin vertical slits hiding warm LED lighting. Giant lantern at night.',
+    draw: drawAndon
+  },
+  {
+    id:'engawa', he:'מושב אנגאווה', en:'Engawa Wrap', color:'#9a7d5a',
+    heDesc:'ספסל/מושב עץ נמוך עוטף את בסיס העמוד בסגנון אנגאווה. משמש כישיבה נוספת או משענת ספרים.',
+    enDesc:'Low wooden bench/seat wrapping the pole base. Extra seating or book rest.',
+    draw: drawEngawa
+  }
+];
+
+// Pole position (percentage of image)
+const P = { left:0.725, right:0.77, top:0.08, bottom:0.82 };
+const PC = { x:(P.left+P.right)/2, w:P.right-P.left, top:P.top, bottom:P.bottom };
+
+let currentIdx = 0;
+const canvas = document.getElementById('overlay');
+const ctx = canvas.getContext('2d');
+const img = document.getElementById('base');
+const tabsEl = document.getElementById('tabs');
+const infoEl = document.getElementById('info');
+const origLabel = document.getElementById('origLabel');
+
+// Build tabs
+concepts.forEach((c, i) => {
+  const t = document.createElement('div');
+  t.className = 'tab' + (i===0?' active':'');
+  t.innerHTML = `${c.he}<span class="en">${c.en}</span>`;
+  t.onclick = () => select(i);
+  tabsEl.appendChild(t);
+});
+
+function select(i) {
+  currentIdx = i;
+  document.querySelectorAll('.tab').forEach((t,j) => t.classList.toggle('active', j===i));
+  origLabel.classList.toggle('show', i===0);
+  render();
+  const c = concepts[i];
+  infoEl.innerHTML = `
+    <h2>${c.he}</h2>
+    <div class="en-name">${c.en}</div>
+    <p>${c.heDesc}</p>
+    <p style="margin-top:6px;font-size:13px;color:#777;direction:ltr;text-align:right">${c.enDesc}</p>
+    ${c.color ? `<div class="legend"><div class="legend-item"><div class="legend-dot" style="background:${c.color}"></div>קונספט</div></div>` : ''}
+  `;
+}
+
+function render() {
+  const w = canvas.width = img.naturalWidth;
+  const h = canvas.height = img.naturalHeight;
+  ctx.clearRect(0,0,w,h);
+  const c = concepts[currentIdx];
+  if (c.draw) c.draw(ctx, w, h);
+}
+
+img.onload = () => { select(0); };
+window.addEventListener('resize', render);
+if (img.complete) select(0);
+
+// Drawing functions
+function poleRect(w, h, extraW=0) {
+  const pw = PC.w * w + extraW;
+  return { x: PC.x*w - pw/2, y: PC.top*h, w: pw, h: (PC.bottom-PC.top)*h };
+}
+
+function drawWoodBase(ctx, r, color='#b08d6a', alpha=0.7) {
+  ctx.save();
+  ctx.globalAlpha = alpha;
+  // Wood gradient
+  const g = ctx.createLinearGradient(r.x, r.y, r.x+r.w, r.y);
+  g.addColorStop(0, shadeColor(color, -15));
+  g.addColorStop(0.3, color);
+  g.addColorStop(0.7, shadeColor(color, 10));
+  g.addColorStop(1, shadeColor(color, -20));
+  ctx.fillStyle = g;
+  roundRect(ctx, r.x, r.y, r.w, r.h, 4);
+  ctx.fill();
+  ctx.restore();
+}
+
+function roundRect(ctx, x, y, w, h, r) {
+  ctx.beginPath();
+  ctx.moveTo(x+r,y); ctx.lineTo(x+w-r,y); ctx.quadraticCurveTo(x+w,y,x+w,y+r);
+  ctx.lineTo(x+w,y+h-r); ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h);
+  ctx.lineTo(x+r,y+h); ctx.quadraticCurveTo(x,y+h,x,y+h-r);
+  ctx.lineTo(x,y+r); ctx.quadraticCurveTo(x,y,x+r,y); ctx.closePath();
+}
+
+function shadeColor(c, pct) {
+  let num = parseInt(c.replace('#',''), 16);
+  let r = Math.min(255, Math.max(0, (num>>16) + pct));
+  let g = Math.min(255, Math.max(0, ((num>>8)&0xff) + pct));
+  let b = Math.min(255, Math.max(0, (num&0xff) + pct));
+  return '#' + ((r<<16)|(g<<8)|b).toString(16).padStart(6,'0');
+}
+
+function drawDaiwa(ctx, w, h) {
+  const r = poleRect(w, h, 8);
+  drawWoodBase(ctx, r, '#b08d6a', 0.75);
+  // Vertical fluting lines
+  ctx.save();
+  ctx.globalAlpha = 0.3;
+  ctx.strokeStyle = '#6b5030';
+  ctx.lineWidth = 1.5;
+  const n = 7;
+  for (let i=1; i<n; i++) {
+    const x = r.x + (r.w/n)*i;
+    ctx.beginPath(); ctx.moveTo(x, r.y+6); ctx.lineTo(x, r.y+r.h-6); ctx.stroke();
+  }
+  ctx.restore();
+  // Subtle top/bottom caps
+  ctx.save();
+  ctx.globalAlpha = 0.5;
+  ctx.fillStyle = '#8a6a48';
+  ctx.fillRect(r.x-2, r.y, r.w+4, 8);
+  ctx.fillRect(r.x-2, r.y+r.h-8, r.w+4, 8);
+  ctx.restore();
+}
+
+function drawTokonoma(ctx, w, h) {
+  const r = poleRect(w, h, 6);
+  drawWoodBase(ctx, r, '#a08060', 0.72);
+  // Floating shelf
+  ctx.save();
+  const shelfY = r.y + r.h * 0.38;
+  const shelfW = r.w * 2.8;
+  const shelfH = r.w * 0.25;
+  // Shelf shadow
+  ctx.globalAlpha = 0.25;
+  ctx.fillStyle = '#000';
+  ctx.fillRect(r.x + r.w - 4, shelfY + shelfH, shelfW, 6);
+  // Shelf
+  ctx.globalAlpha = 0.8;
+  const sg = ctx.createLinearGradient(r.x+r.w, shelfY, r.x+r.w, shelfY+shelfH);
+  sg.addColorStop(0, '#c4a070');
+  sg.addColorStop(1, '#8a6a48');
+  ctx.fillStyle = sg;
+  ctx.fillRect(r.x + r.w - 4, shelfY, shelfW, shelfH);
+  // Small vase silhouette
+  ctx.globalAlpha = 0.5;
+  ctx.fillStyle = '#5a4a3a';
+  const vx = r.x + r.w + shelfW * 0.4;
+  const vy = shelfY - r.w * 0.9;
+  ctx.beginPath();
+  ctx.ellipse(vx, vy + r.w*0.35, r.w*0.22, r.w*0.45, 0, 0, Math.PI*2);
+  ctx.fill();
+  ctx.beginPath();
+  ctx.ellipse(vx, vy - r.w*0.1, r.w*0.1, r.w*0.12, 0, 0, Math.PI*2);
+  ctx.fill();
+  ctx.fillRect(vx - r.w*0.04, vy - r.w*0.05, r.w*0.08, r.w*0.2);
+  ctx.restore();
+}
+
+function drawWabiSabi(ctx, w, h) {
+  const r = poleRect(w, h, 8);
+  const mid = r.y + r.h * 0.55;
+  // Bottom — stone/microcement
+  ctx.save();
+  ctx.globalAlpha = 0.72;
+  const sg = ctx.createLinearGradient(r.x, mid, r.x+r.w, mid);
+  sg.addColorStop(0, '#7a7570');
+  sg.addColorStop(0.4, '#908880');
+  sg.addColorStop(1, '#6a6560');
+  ctx.fillStyle = sg;
+  roundRect(ctx, r.x, mid, r.w, r.y+r.h-mid, 3);
+  ctx.fill();
+  // Texture dots
+  ctx.globalAlpha = 0.15;
+  for (let i=0; i<60; i++) {
+    ctx.fillStyle = Math.random()>0.5 ? '#fff' : '#000';
+    ctx.fillRect(r.x+Math.random()*r.w, mid+Math.random()*(r.y+r.h-mid), 2, 2);
+  }
+  ctx.restore();
+  // Top — wood
+  ctx.save();
+  ctx.globalAlpha = 0.72;
+  const wg = ctx.createLinearGradient(r.x, r.y, r.x+r.w, r.y);
+  wg.addColorStop(0, '#8a6a48');
+  wg.addColorStop(0.5, '#b08d6a');
+  wg.addColorStop(1, '#7a5a38');
+  ctx.fillStyle = wg;
+  roundRect(ctx, r.x, r.y, r.w, mid-r.y, 3);
+  ctx.fill();
+  ctx.restore();
+  // Brass strip
+  ctx.save();
+  ctx.globalAlpha = 0.85;
+  const bg = ctx.createLinearGradient(r.x-4, mid, r.x+r.w+4, mid);
+  bg.addColorStop(0, '#c4a040');
+  bg.addColorStop(0.5, '#e8c860');
+  bg.addColorStop(1, '#b08830');
+  ctx.fillStyle = bg;
+  ctx.fillRect(r.x-4, mid-3, r.w+8, 6);
+  ctx.restore();
+}
+
+function drawAndon(ctx, w, h) {
+  const r = poleRect(w, h, 10);
+  drawWoodBase(ctx, r, '#9a7a58', 0.7);
+  // LED slits with glow
+  ctx.save();
+  const slitN = 5;
+  const slitW = 2.5;
+  for (let i=1; i<slitN; i++) {
+    const x = r.x + (r.w/slitN)*i;
+    // Glow
+    ctx.globalAlpha = 0.35;
+    ctx.shadowColor = '#ffcc55';
+    ctx.shadowBlur = 20;
+    ctx.strokeStyle = '#ffe088';
+    ctx.lineWidth = slitW + 4;
+    ctx.beginPath(); ctx.moveTo(x, r.y+15); ctx.lineTo(x, r.y+r.h-15); ctx.stroke();
+    // Slit
+    ctx.shadowBlur = 8;
+    ctx.globalAlpha = 0.7;
+    ctx.strokeStyle = '#ffd866';
+    ctx.lineWidth = slitW;
+    ctx.beginPath(); ctx.moveTo(x, r.y+15); ctx.lineTo(x, r.y+r.h-15); ctx.stroke();
+  }
+  ctx.restore();
+  // Warm ambient glow around pole
+  ctx.save();
+  ctx.globalAlpha = 0.12;
+  const grd = ctx.createRadialGradient(r.x+r.w/2, r.y+r.h/2, r.w/2, r.x+r.w/2, r.y+r.h/2, r.w*3);
+  grd.addColorStop(0, '#ffcc55');
+  grd.addColorStop(1, 'transparent');
+  ctx.fillStyle = grd;
+  ctx.fillRect(r.x-r.w*3, r.y, r.w*7, r.h);
+  ctx.restore();
+}
+
+function drawEngawa(ctx, w, h) {
+  const r = poleRect(w, h, 6);
+  drawWoodBase(ctx, r, '#9a7d5a', 0.72);
+  // Bench at base
+  ctx.save();
+  const benchH = r.h * 0.15;
+  const benchW = r.w * 4;
+  const benchY = r.y + r.h - benchH;
+  const benchX = r.x + r.w/2 - benchW/2;
+  // Shadow
+  ctx.globalAlpha = 0.2;
+  ctx.fillStyle = '#000';
+  roundRect(ctx, benchX+4, benchY+4, benchW, benchH, 6);
+  ctx.fill();
+  // Bench body
+  ctx.globalAlpha = 0.78;
+  const bg = ctx.createLinearGradient(benchX, benchY, benchX, benchY+benchH);
+  bg.addColorStop(0, '#c4a070');
+  bg.addColorStop(0.3, '#b08d6a');
+  bg.addColorStop(1, '#8a6a48');
+  ctx.fillStyle = bg;
+  roundRect(ctx, benchX, benchY, benchW, benchH, 6);
+  ctx.fill();
+  // Wood grain lines
+  ctx.globalAlpha = 0.2;
+  ctx.strokeStyle = '#6b5030';
+  ctx.lineWidth = 1;
+  for (let i=1; i<4; i++) {
+    const ly = benchY + (benchH/4)*i;
+    ctx.beginPath(); ctx.moveTo(benchX+6, ly); ctx.lineTo(benchX+benchW-6, ly); ctx.stroke();
+  }
+  // Legs hint
+  ctx.globalAlpha = 0.6;
+  ctx.fillStyle = '#7a5a38';
+  ctx.fillRect(benchX+8, benchY+benchH, 6, 12);
+  ctx.fillRect(benchX+benchW-14, benchY+benchH, 6, 12);
+  ctx.restore();
+}
+</script>
+
+</body>
+</html>
