@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Soluna Villa — Raised Tie Truss Proposal</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:#f8f6f2;color:#333;display:flex;flex-direction:column;align-items:center;padding:20px 10px}
+h1{font-size:clamp(1.1rem,3vw,1.6rem);text-align:center;margin-bottom:4px;color:#2c2c2c}
+h2{font-size:clamp(0.8rem,2vw,1rem);text-align:center;color:#666;font-weight:400;margin-bottom:20px}
+.diagram-wrap{width:100%;max-width:800px;aspect-ratio:4/3.2}
+svg{width:100%;height:100%}
+.label{font-family:'Segoe UI',system-ui,sans-serif;font-size:11px;fill:#444}
+.label-bold{font-family:'Segoe UI',system-ui,sans-serif;font-size:12px;fill:#333;font-weight:700}
+.height-mark{font-family:'Segoe UI',system-ui,sans-serif;font-size:10px;fill:#888;text-anchor:end}
+.title-label{font-size:13px;font-weight:700}
+</style>
+</head>
+<body>
+<h1>Soluna Villa — Raised Tie Truss Proposal</h1>
+<h2>Eliminating the center pole while keeping the raked ceiling</h2>
+<div class="diagram-wrap">
+<svg viewBox="0 0 600 480" xmlns="http://www.w3.org/2000/svg">
+<defs>
+<pattern id="hatch" patternUnits="userSpaceOnUse" width="8" height="8" patternTransform="rotate(45)">
+<line x1="0" y1="0" x2="0" y2="8" stroke="#b0d4f1" stroke-width="1.5"/>
+</pattern>
+</defs>
+
+<!-- Coordinate system: ground at y=420, each meter = 50px up -->
+<!-- So 0m=420, 3m=270, 3.5m=245, 5m=170, 8m=20 -->
+<!-- Span: 11m centered. Left wall x=145, right wall x=455. Center x=300 -->
+
+<!-- Ground -->
+<rect x="60" y="420" width="510" height="4" fill="#8B7355"/>
+<line x1="80" y1="420" x2="80" y2="22" stroke="#ccc" stroke-width="0.5" stroke-dasharray="3,3"/>
+
+<!-- Height markers -->
+<g>
+<line x1="85" y1="420" x2="90" y2="420" stroke="#aaa" stroke-width="1"/>
+<text x="78" y="424" class="height-mark">0m</text>
+<line x1="85" y1="370" x2="90" y2="370" stroke="#aaa" stroke-width="1"/>
+<text x="78" y="374" class="height-mark">1m</text>
+<line x1="85" y1="320" x2="90" y2="320" stroke="#aaa" stroke-width="1"/>
+<text x="78" y="324" class="height-mark">2m</text>
+<line x1="85" y1="270" x2="90" y2="270" stroke="#aaa" stroke-width="1"/>
+<text x="78" y="274" class="height-mark">3m</text>
+<line x1="85" y1="220" x2="90" y2="220" stroke="#aaa" stroke-width="1"/>
+<text x="78" y="224" class="height-mark">4m</text>
+<line x1="85" y1="170" x2="90" y2="170" stroke="#aaa" stroke-width="1"/>
+<text x="78" y="174" class="height-mark">5m</text>
+<line x1="85" y1="120" x2="90" y2="120" stroke="#aaa" stroke-width="1"/>
+<text x="78" y="124" class="height-mark">6m</text>
+<line x1="85" y1="70" x2="90" y2="70" stroke="#aaa" stroke-width="1"/>
+<text x="78" y="74" class="height-mark">7m</text>
+<line x1="85" y1="20" x2="90" y2="20" stroke="#aaa" stroke-width="1"/>
+<text x="78" y="24" class="height-mark">8m</text>
+</g>
+
+<!-- Walls -->
+<rect x="140" y="245" width="12" height="175" fill="#d4c5a9" stroke="#a89878" stroke-width="1"/>
+<rect x="448" y="245" width="12" height="175" fill="#d4c5a9" stroke="#a89878" stroke-width="1"/>
+
+<!-- Foundation hint -->
+<rect x="130" y="420" width="32" height="8" fill="#a89878"/>
+<rect x="438" y="420" width="32" height="8" fill="#a89878"/>
+
+<!-- Outer roof (tile) - ridge at 8m (y=20), eaves at 3.5m (y=245) -->
+<!-- Left slope: from (120,245) to (300,20) -->
+<!-- Right slope: from (300,20) to (480,245) -->
+<polygon points="120,245 300,20 480,245 470,245 300,32 130,245" fill="#b5694d" opacity="0.85"/>
+<!-- Roof outline -->
+<line x1="120" y1="245" x2="300" y2="20" stroke="#8B4513" stroke-width="2.5"/>
+<line x1="300" y1="20" x2="480" y2="245" stroke="#8B4513" stroke-width="2.5"/>
+<!-- Overhang lines -->
+<line x1="110" y1="252" x2="120" y2="245" stroke="#8B4513" stroke-width="2"/>
+<line x1="480" y1="245" x2="490" y2="252" stroke="#8B4513" stroke-width="2"/>
+
+<!-- Hidden truss zone highlight (5m to 8m, between roof slopes) -->
+<!-- At 5m (y=170): left x = lerp(120,300, (245-170)/(245-20)) = 120 + 180*(75/225) = 120+60 = 180, right = 480-60=420 -->
+<polygon points="180,170 300,20 420,170" fill="#b0d4f1" opacity="0.25" stroke="#6ba3d6" stroke-width="1" stroke-dasharray="5,3"/>
+
+<!-- Truss members (steel grey) - raised tie truss with bottom chord at 5m -->
+<!-- Bottom chord -->
+<line x1="180" y1="170" x2="420" y2="170" stroke="#555" stroke-width="3"/>
+<!-- Left rafter (inside) -->
+<line x1="180" y1="170" x2="300" y2="28" stroke="#555" stroke-width="2.5"/>
+<!-- Right rafter (inside) -->
+<line x1="300" y1="28" x2="420" y2="170" stroke="#555" stroke-width="2.5"/>
+
+<!-- Web members - triangular pattern (no horizontal tie through middle) -->
+<!-- King post from ridge down to bottom chord center -->
+<line x1="300" y1="28" x2="300" y2="170" stroke="#555" stroke-width="2"/>
+<!-- Diagonal webs from bottom chord center up to mid-rafters -->
+<!-- Left mid-rafter point: at y=99 (midpoint of 28 and 170), x = 180 + (300-180)*(170-99)/(170-28) = 180+60*0.5 = 240 -->
+<line x1="300" y1="170" x2="240" y2="99" stroke="#555" stroke-width="1.5"/>
+<line x1="300" y1="170" x2="360" y2="99" stroke="#555" stroke-width="1.5"/>
+<!-- Lower diagonals from bottom chord quarters to mid-king-post -->
+<line x1="240" y1="170" x2="240" y2="99" stroke="#555" stroke-width="1.5"/>
+<line x1="360" y1="170" x2="360" y2="99" stroke="#555" stroke-width="1.5"/>
+
+<!-- Joint circles -->
+<circle cx="180" cy="170" r="4" fill="#555"/>
+<circle cx="420" cy="170" r="4" fill="#555"/>
+<circle cx="300" cy="28" r="4" fill="#555"/>
+<circle cx="300" cy="170" r="4" fill="#555"/>
+<circle cx="240" cy="99" r="4" fill="#444"/>
+<circle cx="360" cy="99" r="4" fill="#444"/>
+
+<!-- Raked ceiling line (warm wood) - from walls at 3.5m sloping up to 5m at center -->
+<!-- Left: (152,245) to (300,170), Right: (300,170) to (448,245) -->
+<line x1="152" y1="245" x2="300" y2="170" stroke="#c4913e" stroke-width="3.5"/>
+<line x1="300" y1="170" x2="448" y2="245" stroke="#c4913e" stroke-width="3.5"/>
+<!-- Ceiling fill (subtle) -->
+<polygon points="152,245 300,170 448,245" fill="#f5e6c8" opacity="0.15"/>
+
+<!-- Center pole (eliminated) - dashed line from ground to ~5m -->
+<line x1="300" y1="420" x2="300" y2="170" stroke="#cc3333" stroke-width="2" stroke-dasharray="8,4" opacity="0.5"/>
+<!-- Red X -->
+<g transform="translate(300,300)">
+<line x1="-18" y1="-18" x2="18" y2="18" stroke="#dd2222" stroke-width="4" stroke-linecap="round"/>
+<line x1="18" y1="-18" x2="-18" y2="18" stroke="#dd2222" stroke-width="4" stroke-linecap="round"/>
+</g>
+
+<!-- Furniture silhouettes -->
+<!-- Sofa (left side) -->
+<rect x="175" y="392" width="70" height="24" rx="4" fill="#9e9080" opacity="0.5"/>
+<rect x="175" y="386" width="70" height="8" rx="3" fill="#8a8070" opacity="0.5"/>
+<!-- Coffee table -->
+<rect x="270" y="398" width="55" height="14" rx="2" fill="#a09585" opacity="0.4"/>
+<!-- Side table / lamp -->
+<rect x="365" y="400" width="20" height="16" rx="2" fill="#a09585" opacity="0.4"/>
+<line x1="375" y1="400" x2="375" y2="385" stroke="#a09585" stroke-width="1.5" opacity="0.4"/>
+<circle cx="375" cy="383" r="6" fill="#d4c090" opacity="0.3"/>
+
+<!-- Person for scale (standing, ~1.7m tall = 85px) -->
+<g opacity="0.35">
+<circle cx="410" cy="343" r="6" fill="#777"/>
+<line x1="410" y1="349" x2="410" y2="395" stroke="#777" stroke-width="2"/>
+<line x1="410" y1="360" x2="400" y2="375" stroke="#777" stroke-width="1.5"/>
+<line x1="410" y1="360" x2="420" y2="375" stroke="#777" stroke-width="1.5"/>
+<line x1="410" y1="395" x2="402" y2="418" stroke="#777" stroke-width="1.5"/>
+<line x1="410" y1="395" x2="418" y2="418" stroke="#777" stroke-width="1.5"/>
+</g>
+
+<!-- LABELS -->
+
+<!-- Tile Roof -->
+<text x="195" y="155" class="label-bold" fill="#7a3a1a" transform="rotate(-34,195,155)" font-size="11">Tile Roof (34°)</text>
+
+<!-- Hidden Truss Structure -->
+<text x="255" y="110" class="label-bold" fill="#3a7ab5" font-size="11">Hidden Truss</text>
+<text x="258" y="124" class="label-bold" fill="#3a7ab5" font-size="11">Structure</text>
+
+<!-- Raked Ceiling -->
+<text x="335" y="220" class="label" fill="#9a6a20" font-size="10" transform="rotate(-17,335,220)">Raked Ceiling</text>
+<text x="330" y="232" class="label" fill="#9a6a20" font-size="9" transform="rotate(-17,330,232)">(visible from inside)</text>
+
+<!-- Living Room -->
+<text x="260" y="360" class="label-bold" fill="#666" font-size="14">Living Room</text>
+
+<!-- NO CENTER POLE -->
+<text x="300" y="275" text-anchor="middle" class="label-bold" fill="#dd2222" font-size="12">NO CENTER</text>
+<text x="300" y="290" text-anchor="middle" class="label-bold" fill="#dd2222" font-size="12">POLE ❌</text>
+
+<!-- Cavity annotation with arrow -->
+<!-- Right side arrow showing 2-3m cavity -->
+<line x1="490" y1="170" x2="490" y2="20" stroke="#3a7ab5" stroke-width="1.5" marker-start="url(#arrowDown)" marker-end="url(#arrowUp)"/>
+<defs>
+<marker id="arrowUp" markerWidth="8" markerHeight="6" refX="4" refY="6" orient="auto">
+<path d="M0,6 L4,0 L8,6" fill="none" stroke="#3a7ab5" stroke-width="1.2"/>
+</marker>
+<marker id="arrowDown" markerWidth="8" markerHeight="6" refX="4" refY="0" orient="auto">
+<path d="M0,0 L4,6 L8,0" fill="none" stroke="#3a7ab5" stroke-width="1.2"/>
+</marker>
+</defs>
+<text x="498" y="85" class="label" fill="#3a7ab5" font-size="10">2-3m</text>
+<text x="498" y="97" class="label" fill="#3a7ab5" font-size="10">cavity</text>
+<text x="498" y="109" class="label" fill="#3a7ab5" font-size="10">for truss</text>
+
+<!-- Bottom chord height label -->
+<text x="180" y="165" class="label" fill="#555" font-size="9" text-anchor="end">5.0m —</text>
+
+<!-- Eave height label -->
+<text x="125" y="243" class="label" fill="#888" font-size="9" text-anchor="end">3.5m</text>
+
+<!-- Ridge label -->
+<text x="300" y="14" text-anchor="middle" class="label" fill="#7a3a1a" font-size="10">Ridge +8.0m</text>
+
+</svg>
+</div>
+<p style="text-align:center;color:#999;font-size:0.75rem;margin-top:12px">Cross-section diagram — not to scale. Dimensions from architectural plans.</p>
+</body>
+</html>
